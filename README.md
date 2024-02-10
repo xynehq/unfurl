@@ -1,16 +1,6 @@
 # Unfurl
-
-A metadata scraper with support for oEmbed, Twitter Cards and Open Graph Protocol for Node.js (>=v8.0.0). 
-
-Note: Will not work in the Browser
-
-[![Travis CI](https://img.shields.io/travis/jacktuck/unfurl?style=flat-square)](https://travis-ci.org/jacktuck/unfurl)
-[![Coverage Status](https://img.shields.io/coveralls/jacktuck/unfurl?style=flat-square)](https://coveralls.io/github/jacktuck/unfurl?branch=master)
-[![Known Vulnerabilities](https://snyk.io/test/github/jacktuck/unfurl/badge.svg?style=flat-square)](https://snyk.io/test/github/jacktuck/unfurl)
-[![npm](https://img.shields.io/npm/v/unfurl.js?style=flat-square)](https://www.npmjs.com/package/unfurl.js)
-
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jacktuck)
+This project is a fork of [Unfurl.js](https://github.com/jacktuck/unfurl).
+We wanted a way to run this in the browser, we do not face CORS issues as we are running it in the service worker of chrome extension.
 
 ## The what
 Unfurl _(spread out from a furled state)_ will take a `url` and some `options`, fetch the `url`, extract the metadata we care about and format the result in a sane way. It supports all major metadata providers and expanding it to work for any others should be trivial.
@@ -20,7 +10,7 @@ So you know when you link to something on Slack, or Facebook, or Twitter - they 
 
 ## The how
 ```bash
-npm install unfurl.js
+npm install @xyne/unfurl
 ```
 
 ### `unfurl(url [, opts])`
@@ -28,7 +18,7 @@ npm install unfurl.js
 ---
 #### opts - `object` of:
 -  `oembed?: boolean` - support retrieving oembed metadata
--  `timeout?  number` - req/res timeout in ms, it resets on redirect. 0 to disable (OS limit applies)
+-  `timeout?  number` - req/res timeout in ms, it resets on redirect. 10000 default
 -  `follow?: number` - maximum redirect count. 0 to not follow redirect
 -  `compress?: boolean` - support gzip/deflate content encoding
 -  `size?: number` - maximum response body size in bytes. 0 to disable
@@ -44,7 +34,7 @@ Default headers:
 ---
 #
 ```typescript
-import { unfurl } from 'unfurl.js'
+import { unfurl } from '@xyne/unfurl'
 const result = unfurl('https://github.com/trending')
 ```
 ---
@@ -148,11 +138,3 @@ type Metadata = {
   }
 }
 ```
-
-## The who 💖
-_(If you use unfurl.js too feel free to [add your project](https://github.com/jacktuck/unfurl/edit/master/README.md))_
-- [vapid/vapid](https://github.com/vapid/vapid) - A template-driven content management system
-- [beeman/micro-unfurl](https://github.com/beeman/micro-unfurl) - small microservice that unfurls a URL and returns the OpenGraph meta data.
-- [probot/unfurl](https://github.com/probot/unfurl) - a GitHub App built with probot that unfurls links on Issues and Pull Request discussions
-
-
