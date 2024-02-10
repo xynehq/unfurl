@@ -1,4 +1,3 @@
-import { HeadersInit } from "node-fetch";
 export type Opts = {
   /** support retreiving oembed metadata */
   oembed?: boolean;

@@ -1,6 +1,5 @@
 import { URL } from "url";
 import { Parser } from "htmlparser2";
-import nodeFetch from "node-fetch";
 import UnexpectedError from "./unexpectedError";
 import { schema, keys } from "./schema";
 import { Metadata, Opts } from "./types";
@@ -46,14 +45,16 @@ function unfurl(url: string, opts?: Opts): Promise<Metadata> {
 }
 
 async function getPage(url: string, opts: Opts) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), opts.timeout);
+
   const res = await (opts.fetch
     ? opts.fetch(url)
-    : nodeFetch(new URL(url), {
+    : fetch(url, {
         headers: opts.headers,
-        size: opts.size,
-        follow: opts.follow,
-        timeout: opts.timeout,
+        signal: controller.signal,
       }));
+  clearTimeout(timeoutId);
 
   const buf = Buffer.from(await res.arrayBuffer());
   const contentType = res.headers.get("Content-Type");
@@ -122,7 +123,7 @@ async function getPage(url: string, opts: Opts) {
   return buf.toString();
 }
 
-function getRemoteMetadata(url: string, { fetch = nodeFetch }: Opts) {
+function getRemoteMetadata(url: string, { fetch }: Opts) {
   return async function ({ oembed, metadata }) {
     if (!oembed) {
       return metadata;

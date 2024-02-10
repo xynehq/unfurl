@@ -1,8 +1,5 @@
 {
   "name": "unfurl.js",
-  "engines": {
-    "node": ">=6.0.0"
-  },
   "version": "5.1.0",
   "description": "Scraper for oEmbed, Twitter Cards and Open Graph metadata - fast and Promise-based",
   "main": "dist/index.js",
@@ -11,14 +8,11 @@
     "debug": "^3.2.7",
     "he": "^1.2.0",
     "htmlparser2": "^8.0.1",
-    "iconv-lite": "^0.4.24",
-    "node-fetch": "^2.6.7"
+    "iconv-lite": "^0.4.24"
   },
   "devDependencies": {
     "@types/htmlparser2": "^3.10.3",
     "@types/jest": "^23.3.2",
-    "@types/node": "^16.7.13",
-    "@types/node-fetch": "^2.6.2",
     "@typescript-eslint/eslint-plugin": "^5.40.1",
     "@typescript-eslint/parser": "^5.40.1",
     "coveralls": "^3.0.2",
@@ -54,7 +48,6 @@
     "embed",
     "iframe",
     "metadata",
-    "node.js",
     "fast"
   ],
   "repository": "git://github.com/jacktuck/unfurl.git",

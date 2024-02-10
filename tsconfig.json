@@ -4,12 +4,22 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "lib": ["es2017"],
+    "lib": [
+      "dom",
+      "es6"
+    ],
     "module": "commonjs",
-    "target": "es2017",
+    "target": "es6",
     "declaration": true,
-    "typeRoots": ["node_modules/@types", "src/typings"]
+    "typeRoots": [
+      "node_modules/@types",
+      "src/typings"
+    ]
   },
-  "include": ["src/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
