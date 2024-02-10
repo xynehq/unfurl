@@ -1,10 +1,8 @@
-import { URL } from "url";
 import { Parser } from "htmlparser2";
 import UnexpectedError from "./unexpectedError";
 import { schema, keys } from "./schema";
 import { Metadata, Opts } from "./types";
 import { decode as he_decode } from "he";
-import { decode as iconv_decode } from "iconv-lite";
 
 type ParserContext = {
   isHtml?: boolean;
@@ -35,7 +33,7 @@ function unfurl(url: string, opts?: Opts): Promise<Metadata> {
   typeof opts.headers === "object" || (opts.headers = defaultHeaders);
 
   Number.isInteger(opts.follow) || (opts.follow = 50);
-  Number.isInteger(opts.timeout) || (opts.timeout = 0);
+  Number.isInteger(opts.timeout) || (opts.timeout = 10000);
   Number.isInteger(opts.size) || (opts.size = 0);
 
   return getPage(url, opts)
@@ -44,86 +42,58 @@ function unfurl(url: string, opts?: Opts): Promise<Metadata> {
     .then(parse(url));
 }
 
-async function getPage(url: string, opts: Opts) {
+async function getPage(url, opts) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), opts.timeout);
 
-  const res = await (opts.fetch
-    ? opts.fetch(url)
+  const res = await (opts.fetchFn
+    ? opts.fetchFn(url)
     : fetch(url, {
         headers: opts.headers,
         signal: controller.signal,
       }));
   clearTimeout(timeoutId);
 
-  const buf = Buffer.from(await res.arrayBuffer());
-  const contentType = res.headers.get("Content-Type");
-  const contentLength = res.headers.get("Content-Length");
-
   if (res.status !== 200) {
-    throw new UnexpectedError({
-      ...UnexpectedError.BAD_HTTP_STATUS,
-      info: {
-        url,
-        httpStatus: res.status,
-      },
-    });
+    throw new Error(`Unexpected HTTP status: ${res.status}`);
   }
 
-  if (/text\/html|application\/xhtml+xml/.test(contentType) === false) {
-    throw new UnexpectedError({
-      ...UnexpectedError.EXPECTED_HTML,
-      info: {
-        url,
-        contentType,
-        contentLength,
-      },
-    });
+  const contentType = res.headers.get("Content-Type");
+  if (!/text\/html|application\/xhtml+xml/.test(contentType)) {
+    throw new Error(`Expected HTML content, got ${contentType}`);
   }
 
-  // no charset in content type, peek at response body for at most 1024 bytes
-  const str = buf.slice(0, 1024).toString();
-  let rg;
+  const arrayBuffer = await res.arrayBuffer();
+  const initialText = new TextDecoder("utf-8", { fatal: false }).decode(
+    arrayBuffer
+  );
 
-  if (contentType) {
-    rg = /charset=([^;]*)/i.exec(contentType);
-  }
+  // Attempt to detect charset from meta tags
+  const charsetMatch =
+    initialText.match(/<meta\s+charset=["']?([^"'>]+)/i) ||
+    initialText.match(
+      /<meta\s+http-equiv=["']?Content-Type["']?\s+content=["']text\/html;\s+charset=([^"'>]+)/i
+    );
 
-  // html 5
-  if (!rg && str) {
-    rg = /<meta.+?charset=(['"])(.+?)\1/i.exec(str);
-  }
-
-  // html 4
-  if (!rg && str) {
-    rg = /<meta.+?content=["'].+;\s?charset=(.+?)["']/i.exec(str);
-  }
-
-  // found charset
-  if (rg) {
-    const supported = [
-      "CP932",
-      "CP936",
-      "CP949",
-      "CP950",
-      "GB2312",
-      "GBK",
-      "GB18030",
-      "BIG5",
-      "SHIFT_JIS",
-      "EUC-JP",
-    ];
-    const charset = rg.pop().toUpperCase();
-
-    if (supported.includes(charset)) {
-      return iconv_decode(buf, charset).toString();
+  if (charsetMatch && charsetMatch[1].toUpperCase() !== "UTF-8") {
+    // Re-decode with detected charset if it's different from UTF-8
+    try {
+      const decoder = new TextDecoder(charsetMatch[1], { fatal: true });
+      return decoder.decode(arrayBuffer);
+    } catch (error) {
+      console.warn(
+        `Decoding with charset ${charsetMatch[1]} failed, falling back to UTF-8.`,
+        error
+      );
+      // Fallback to UTF-8 if the detected charset is not supported
+      return initialText;
     }
   }
 
-  return buf.toString();
+  return initialText;
 }
 
-function getRemoteMetadata(url: string, { fetch }: Opts) {
+function getRemoteMetadata(url: string, { fetchFn }: Opts) {
   return async function ({ oembed, metadata }) {
     if (!oembed) {
       return metadata;
@@ -131,7 +101,7 @@ function getRemoteMetadata(url: string, { fetch }: Opts) {
 
     const target = new URL(he_decode(oembed.href), url);
 
-    let res = await fetch(target.href);
+    let res = await fetchFn(target.href);
     let contentType = res.headers.get("Content-Type");
     const status = res.status;
 
@@ -139,7 +109,7 @@ function getRemoteMetadata(url: string, { fetch }: Opts) {
       // try again using HTTPS
       target.protocol = "https:";
 
-      res = await fetch(target.href);
+      res = await fetchFn(target.href);
       contentType = res.headers.get("Content-Type");
     }
 

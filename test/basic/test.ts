@@ -10,7 +10,7 @@ test("should handle content which is escaped badly", async () => {
 
   const result = await unfurl(
     "http://localhost/html/double-escaped-edge-case",
-    { fetch }
+    { fetchFn: fetch }
   );
 
   expect(result.description).toEqual('"');
@@ -23,7 +23,9 @@ test("should detect title, description, keywords and canonical URL", async () =>
       "Content-Type": "text/html",
     });
 
-  const result = await unfurl("http://localhost/html/basic", { fetch });
+  const result = await unfurl("http://localhost/html/basic", {
+    fetchFn: fetch,
+  });
 
   const expected = {
     favicon: "http://localhost/favicon.ico",
@@ -45,7 +47,9 @@ test("should detect title, description, keywords and canonical URL even when the
       "Content-Type": "text/html",
     });
 
-  const result = await unfurl("http://localhost/html/basic-body", { fetch });
+  const result = await unfurl("http://localhost/html/basic-body", {
+    fetchFn: fetch,
+  });
 
   const expected = {
     favicon: "http://localhost/favicon.ico",
@@ -66,7 +70,7 @@ test("should detect last dupe of title, description and keywords", async () => {
     });
 
   const result = await unfurl("http://localhost/html/basic-duplicates", {
-    fetch,
+    fetchFn: fetch,
   });
 
   const expected = {
@@ -87,7 +91,7 @@ test("should detect last dupe of title, description and keywords", async () => {
     });
 
   const result = await unfurl("http://localhost/html/keyword-edge-cases", {
-    fetch,
+    fetchFn: fetch,
   });
 
   const expected = {

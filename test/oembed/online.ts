@@ -5,6 +5,5 @@ test.skip("should work for live youtube content", async () => {
     oembed: true,
   });
 
-  // console.log(result);
   expect(result.oEmbed).not.toEqual(undefined);
 });

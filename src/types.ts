@@ -12,7 +12,7 @@ export type Opts = {
   /** map of request headers, overrides the defaults */
   headers?: HeadersInit;
   /** Custom fetch implementation */
-  fetch?: (url: string) => Promise<any /* Response */>; // eslint-disable-line
+  fetchFn?: (url: string) => Promise<any /* Response */>; // eslint-disable-line
 };
 
 export type Metadata = {
